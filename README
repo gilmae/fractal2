@@ -1,0 +1,6 @@
+# Fractals
+
+A code base for generating fractal images.
+
+This may replace the existing [mandelbrot](https://github.com/gilmae/mandelbrot)
+ program.
