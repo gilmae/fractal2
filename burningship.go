@@ -18,7 +18,7 @@ type BurningShip struct {
 }
 
 func NewBurningShip() BurningShip {
-	return BurningShip{-2.25, 0.75, -1.5, 1.5}
+	return BurningShip{-2.5, 1.5, -1, 2.0}
 }
 
 func (m *BurningShip) Process(c Config) {
@@ -114,9 +114,9 @@ func (m *BurningShip) Check_If_Point_Escapes(real float64, imag float64, config 
 	var zImag = imag
     var iteration int 
 
-    for iteration = 0; iteration < config.maxIterations && (zReal * zReal + zImag*zImag) < config.bailout*config.bailout; iteration++ {
+    for iteration = 0; iteration < config.maxIterations && (zReal * zReal + zImag*zImag) < config.bailout; iteration++ {
       xtemp := zReal * zReal - zImag*zImag - real
-      newImag := 2 * math.Abs(zReal * zImag) - imag
+      newImag := math.Abs(2 * zReal * zImag + imag)
       newReal := math.Abs(xtemp)
   
 	  zReal = newReal
