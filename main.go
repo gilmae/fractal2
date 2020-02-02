@@ -99,6 +99,8 @@ func Image(c Config) {
 	if err = file.Close(); err != nil {
 		fmt.Println(err)
 	}
+
+	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
 
 func Calculate_Coordinates_At_Point(config Config) (float64, float64) {
