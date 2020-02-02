@@ -58,6 +58,17 @@ type PlottedPoint struct {
 func main() {
 	c := Get_Config()
 
+	
+	if c.mode == "image" {
+		Image(c)
+	} else if c.mode == "coordsAt" {
+		var r,i = Calculate_Coordinates_At_Point(c)
+		fmt.Printf("%18.17e, %18.17e\n", r, i)
+	}
+	
+}
+
+func Image(c Config) {
 	initialise_gradient(c.gradient)
 	
 	bounds := image.Rect(0, 0, c.width, c.width)
@@ -88,7 +99,16 @@ func main() {
 	if err = file.Close(); err != nil {
 		fmt.Println(err)
 	}
-	
+}
+
+func Calculate_Coordinates_At_Point(config Config) (float64, float64) {
+	var pixelScale = (rMax - rMin) / float64(config.width-1)
+	pixelOffset := float64(config.width-1)/2.0
+
+	var real = config.midX + (float64(config.pointX) - pixelOffset) * pixelScale
+	var imag = config.midY - pixelScale * (-1.0 * float64(config.pointY) + pixelOffset);
+
+	return real, imag
 }
 
 func Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
