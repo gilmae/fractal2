@@ -9,6 +9,7 @@ import (
 	"image/jpeg"
 	"os"
 	"flag"
+	"strconv"
 )
 
 const (
@@ -75,7 +76,7 @@ func main() {
 
 	Iterate_Over_Points(c, plotted_channel)
 
-	file, err := os.Create("/Users/gilmae/tmp/f.jpeg")
+	file, err := os.Create(c.output + "/" + c.filename)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -87,6 +88,7 @@ func main() {
 	if err = file.Close(); err != nil {
 		fmt.Println(err)
 	}
+	
 }
 
 func Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
@@ -162,6 +164,10 @@ func Get_Config() Config {
 	flag.IntVar(&c.pointX, "x", 0, "x cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.IntVar(&c.pointY, "y", 0, "y cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.Parse()
+
+	if c.filename == "" {
+		c.filename = "mb_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
+	}
 
 	return c
 }
