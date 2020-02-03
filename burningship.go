@@ -10,6 +10,8 @@ import (
 	"math"
 )
 
+/* Good mid point is 0.45, -1 */
+
 type BurningShip struct {
 	rMin float64
 	rMax float64
@@ -18,12 +20,10 @@ type BurningShip struct {
 }
 
 func NewBurningShip() BurningShip {
-	return BurningShip{-2.5, 1.5, -1, 2.0}
+	return BurningShip{-2.5, 1.0, -1.0, 2.5}
 }
 
 func (m *BurningShip) Process(c Config) {
-	c.midX = 0.45
-	c.midY = 0.5
 	if c.mode == "image" {
 		m.Image(c)
 	} else if c.mode == "coordsAt" {
