@@ -7,6 +7,7 @@ import (
 	"image/jpeg"
 	"os"
 	"fmt"
+	"strconv"
 )
 
 type Mandelbrot struct {
@@ -21,6 +22,14 @@ func NewMandelbrot() Mandelbrot {
 }
 
 func (m *Mandelbrot) Process(c Config) {
+	if (c.midX == -99.0) {
+		c.midX = (m.rMax + m.rMin) / 2.0
+	}
+
+	if (c.midY == -99.0) {
+		c.midY = (m.iMax + m.iMin) / 2.0
+	}
+	
 	if c.mode == "image" {
 		m.Image(c)
 	} else if c.mode == "coordsAt" {
@@ -47,7 +56,11 @@ func (m *Mandelbrot) Image(c Config) {
 	}(plotted_channel)
 
 	m.Iterate_Over_Points(c, plotted_channel)
-
+	
+	if c.filename == "" {
+		c.filename = "mandelbrot_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
+	}
+	
 	file, err := os.Create(c.output + "/" + c.filename)
 	if err != nil {
 		fmt.Println(err)

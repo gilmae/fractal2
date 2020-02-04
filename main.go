@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"strconv"
 )
 
 const (
@@ -13,21 +12,21 @@ const (
 )
 
 type Config struct {
-	algorithm string
-	maxIterations int
-	bailout float64
-	width int
-	height int
-	pointX int
-	pointY int
-	midX float64
-	midY float64
-	zoom float64
-	output string
-	filename string
-	gradient string
-	mode string
-	colourMode string
+	algorithm 			string
+	maxIterations		int
+	bailout 			float64
+	width 				int
+	height 				int
+	pointX 				int
+	pointY 				int
+	midX 				float64
+	midY 				float64
+	zoom 				float64
+	output 				string
+	filename 			string
+	gradient 			string
+	mode 				string
+	colourMode 			string
 }
 
 type Point struct {
@@ -70,8 +69,8 @@ func main() {
 func Get_Config() Config {
 	var c Config
 	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + MandelbrotAlgoValue + ", " + MutantMandelbrotAlgoValue)
-	flag.Float64Var(&c.midX, "r", -0.75, "Real component of the midpoint.")
-	flag.Float64Var(&c.midY, "i", 0.0, "Imaginary component of the midpoint.")
+	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")
+	flag.Float64Var(&c.midY, "i", -99.0, "Imaginary component of the midpoint.")
 	flag.Float64Var(&c.zoom, "z", 1, "Zoom level.")
 	flag.StringVar(&c.output, "o", ".", "Output path.")
 	flag.StringVar(&c.filename, "f", "", "Output file name.")
@@ -85,10 +84,6 @@ func Get_Config() Config {
 	flag.IntVar(&c.pointX, "x", 0, "x cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.IntVar(&c.pointY, "y", 0, "y cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.Parse()
-
-	if c.filename == "" {
-		c.filename = "mb_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
-	}
 
 	return c
 }
