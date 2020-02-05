@@ -9,15 +9,16 @@ const (
 	MutantMandelbrotAlgoValue = "mutant_mandelbrot"
 	MandelbrotAlgoValue = "mandelbrot"
 	BurningShipAlgoValue = "ship"
+	JuliaAlgoValue = "julia"
 )
 
 type Config struct {
-	algorithm 			string
+	algorithm			string
 	maxIterations		int
-	bailout 			float64
-	width 				int
-	height 				int
-	pointX 				int
+	bailout				float64
+	width				int
+	height				int
+	pointX				int
 	pointY 				int
 	midX 				float64
 	midY 				float64
@@ -27,6 +28,8 @@ type Config struct {
 	gradient 			string
 	mode 				string
 	colourMode 			string
+	constR 				float64
+	constI				float64
 }
 
 type Point struct {
@@ -61,14 +64,18 @@ func main() {
 		b := NewBurningShip()
 	
 		b.Process(c)
+	} else if c.algorithm == JuliaAlgoValue {
+		j := NewJulia()
+		j.Process(c)
 	}
+
 }
 
 
 
 func Get_Config() Config {
 	var c Config
-	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + MandelbrotAlgoValue + ", " + MutantMandelbrotAlgoValue)
+	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + MandelbrotAlgoValue + ", " + MutantMandelbrotAlgoValue + ", " + JuliaAlgoValue)
 	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")
 	flag.Float64Var(&c.midY, "i", -99.0, "Imaginary component of the midpoint.")
 	flag.Float64Var(&c.zoom, "z", 1, "Zoom level.")
@@ -83,6 +90,8 @@ func Get_Config() Config {
 	flag.StringVar(&c.mode, "mode", "image", "Mode: image, coordsAt")
 	flag.IntVar(&c.pointX, "x", 0, "x cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.IntVar(&c.pointY, "y", 0, "y cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
+	flag.Float64Var(&c.constR, "cr", 0.0, "Real component of the const point in a Julia set.")
+	flag.Float64Var(&c.constI, "ci", 0.0, "Imaginary component of the const point in a Julia set.")
 	flag.Parse()
 
 	return c
