@@ -41,7 +41,9 @@ func (m *Julia) Process(c Config) {
 
 func (m *Julia) Image(c Config) {
 	initialise_gradient(c.gradient)
-	
+
+	c.bailout = Determine_Bailout(c)
+
 	bounds := image.Rect(0, 0, c.width, c.width)
 	mbi := image.NewNRGBA(bounds)
 	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
@@ -121,27 +123,34 @@ func (m *Julia) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 }
 
 func (m *Julia) Check_If_Point_Escapes(real float64, imag float64, config Config) (bool, int) {
-	/* Where c is the constant in the Julia algorithim, expressed as a complex number, 
-	Bailout should be R where R**2 - R = |c|. 
-	That's the quadratic equation, which will give us two values. We'll take the larger.
-	*/
 	var iteration int
 	zR := real
 	zI := imag
-
-	cAbs := math.Sqrt(config.constR * config.constR + config.constI * config.constI)
-
-	a,b := Quadratic(1.0, -1.0, -1.0 * cAbs)
-	
-	bailout := Max(a*a, b*b)
 	  
-	for iteration = 0.0; zR * zR + zI * zI < bailout && iteration < config.maxIterations; iteration++ {
+	for iteration = 0.0; zR * zR + zI * zI < config.bailout && iteration < config.maxIterations; iteration++ {
 	  tmp := zR * zR - zI * zI
 	  zI = 2 * zR * zI  + config.constI
 	  zR = tmp + config.constR 
 	}
 	 
 	 return iteration < config.maxIterations, iteration
+}
+
+func Determine_Bailout(config Config) float64 {
+	/* Where c is the constant in the Julia algorithim, expressed as a complex number, 
+	Bailout should be R where R**2 - R = |c|. 
+	That's the quadratic equation, which will give us two values. We'll take the larger.
+	*/
+
+
+	cAbs := math.Sqrt(config.constR * config.constR + config.constI * config.constI)
+
+	a,b := Quadratic(1.0, -1.0, -1.0 * cAbs)
+	
+	/* The bailout test will be testing against the square of R anyway, so doing it now saves 
+	messing about with absolute values of the returns from the quadratic formula */
+	
+	return Max(a*a, b*b)
 }
 
 func Quadratic(a float64, b float64, c float64) (float64, float64) {
