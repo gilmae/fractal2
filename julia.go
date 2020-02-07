@@ -1,6 +1,5 @@
 package main
 import (
-	"sync"
 	"fmt"
 	"strconv"
 	"math"
@@ -48,7 +47,21 @@ func (m *Julia) Image(c Config) {
 		}
 	}(plotted_channel)
 
-	m.Iterate_Over_Points(c, plotted_channel)
+	var Check_If_Point_Escapes EscapeCalculator =  func(real float64, imag float64, config Config) (bool, int) {
+		var iteration int
+		zR := real
+		zI := imag
+		  
+		for iteration = 0.0; zR * zR + zI * zI < config.bailout && iteration < config.maxIterations; iteration++ {
+		  tmp := zR * zR - zI * zI
+		  zI = 2 * zR * zI  + config.constI
+		  zR = tmp + config.constR 
+		}
+		 
+		 return iteration < config.maxIterations, iteration
+	}
+
+	m.Iterate_Over_Points(c, plotted_channel, Check_If_Point_Escapes)
 	
 	if c.filename == "" {
 		c.filename = "julia_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
@@ -57,51 +70,6 @@ func (m *Julia) Image(c Config) {
 	Save_Image(mbi, c.output, c.filename)
 
 	fmt.Printf("%s/%s\n", c.output, c.filename)
-}
-
-func (m *Julia) Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
-	var pixelScale, pixelOffsetReal, pixelOffsetImag = m.Get_Scale(config.zoom, config.height, config.width)
-
-	points_channel := make(chan Point)
-
-	var wg sync.WaitGroup
-	for i := 0; i < 5; i++ {
-		wg.Add(1)
-		go func() {
-			for p := range points_channel {
-				var escaped, iteration = m.Check_If_Point_Escapes(p.real, p.imag, config)
-				plotted_channel <- PlottedPoint{p.X, p.Y, p.real, p.imag, iteration, escaped}
-			}
-			wg.Done()
-		}()
-
-	}
-
-	for x := 0; x <  config.width; x++ {
-		r:= config.midX + (float64(x) - pixelOffsetReal) * pixelScale
-		for y := 0; y < config.height; y++ {
-			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffsetImag);
-			points_channel <- Point{r, i, x, y}
-		}
-	}
-
-	close(points_channel)
-
-	wg.Wait()
-}
-
-func (m *Julia) Check_If_Point_Escapes(real float64, imag float64, config Config) (bool, int) {
-	var iteration int
-	zR := real
-	zI := imag
-	  
-	for iteration = 0.0; zR * zR + zI * zI < config.bailout && iteration < config.maxIterations; iteration++ {
-	  tmp := zR * zR - zI * zI
-	  zI = 2 * zR * zI  + config.constI
-	  zR = tmp + config.constR 
-	}
-	 
-	 return iteration < config.maxIterations, iteration
 }
 
 func Determine_Bailout(config Config) float64 {
