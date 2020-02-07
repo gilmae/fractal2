@@ -7,14 +7,11 @@ import (
 )
 
 type Mandelbrot struct {
-	rMin float64
-	rMax float64
-	iMin float64
-	iMax float64
+	Plane
 }
 
 func NewMandelbrot() Mandelbrot {
-	return Mandelbrot{-2.25, 0.75, -1.5, 1.5}
+	return Mandelbrot{Plane{-2.25, 0.75, -1.5, 1.5}}
 }
 
 func (m *Mandelbrot) Process(c Config) {
@@ -60,24 +57,8 @@ func (m *Mandelbrot) Image(c Config) {
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
 
-func (m *Mandelbrot) Calculate_Coordinates_At_Point(config Config) (float64, float64) {
-	var pixelScale = ((m.rMax - m.rMin) / float64(config.width-1)) / config.zoom
-	pixelOffset := float64(config.width-1)/2.0
-
-	var real = config.midX + (float64(config.pointX) - pixelOffset) * pixelScale
-	var imag = config.midY - pixelScale * (-1.0 * float64(config.pointY) + pixelOffset);
-
-	return real, imag
-}
-
 func (m *Mandelbrot) Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
-	var pixelScaleRealAxis = (m.rMax - m.rMin) / float64(config.width-1) / config.zoom
-	var pixelScaleImagAxis = (m.iMax - m.iMin) / float64(config.height-1) / config.zoom
-
-	var pixelScale = Min(pixelScaleRealAxis, pixelScaleImagAxis)
-
-	pixelOffsetReal := float64(config.width-1)/2.0
-	pixelOffsetImag := float64(config.height-1)/2.0
+	var pixelScale, pixelOffsetReal, pixelOffsetImag = m.Get_Scale(config.zoom, config.height, config.width)
 
 	points_channel := make(chan Point)
 

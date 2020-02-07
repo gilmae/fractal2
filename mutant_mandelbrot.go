@@ -6,14 +6,11 @@ import (
 )
 
 type MutantMandelbrot struct {
-	rMin float64
-	rMax float64
-	iMin float64
-	iMax float64
+	Plane
 }
 
 func NewMutantMandelbrot() MutantMandelbrot {
-	return MutantMandelbrot{-2.25, 0.75, -1.5, 1.5}
+	return MutantMandelbrot{Plane{-2.25, 0.75, -1.5, 1.5}}
 }
 
 func (m MutantMandelbrot) Process(c Config) {
@@ -59,19 +56,8 @@ func (m *MutantMandelbrot) Image(c Config) {
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
 
-func (m *MutantMandelbrot) Calculate_Coordinates_At_Point(config Config) (float64, float64) {
-	var pixelScale = (m.rMax - m.rMin) / float64(config.width-1)
-	pixelOffset := float64(config.width-1)/2.0
-
-	var real = config.midX + (float64(config.pointX) - pixelOffset) * pixelScale
-	var imag = config.midY - pixelScale * (-1.0 * float64(config.pointY) + pixelOffset);
-
-	return real, imag
-}
-
 func (m *MutantMandelbrot) Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
-	var pixelScale = (m.rMax - m.rMin) / float64(config.width-1)
-	pixelOffset := float64(config.width-1)/2.0
+	var pixelScale, pixelOffsetReal, pixelOffsetImag = m.Get_Scale(config.zoom, config.height, config.width)
 
 	points_channel := make(chan Point)
 
@@ -89,9 +75,9 @@ func (m *MutantMandelbrot) Iterate_Over_Points(config Config, plotted_channel ch
 	}
 
 	for x := 0; x <  config.width; x++ {
-		r:= config.midX + (float64(x) - pixelOffset) * pixelScale
-		for y := 0; y < config.width; y++ {
-			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffset);
+		r:= config.midX + (float64(x) - pixelOffsetReal) * pixelScale
+		for y := 0; y < config.height; y++ {
+			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffsetImag);
 			points_channel <- Point{r, i, x, y}
 		}
 	}

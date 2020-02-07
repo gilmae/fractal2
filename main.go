@@ -39,6 +39,13 @@ type Config struct {
 	constI				float64
 }
 
+type Plane struct {
+	rMin float64
+	rMax float64
+	iMin float64
+	iMax float64
+}
+
 type Point struct {
 	real		float64
 	imag		float64
@@ -138,4 +145,25 @@ func Save_Image(mbi *image.NRGBA, filepath string, filename string){
 	if err = file.Close(); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func (p *Plane) Get_Scale(zoom float64, height int, width int) (float64, float64, float64) {
+	var pixelScaleRealAxis = (p.rMax - p.rMin) / float64(width-1) / zoom
+	var pixelScaleImagAxis = (p.iMax - p.iMin) / float64(height-1) / zoom
+
+	var pixelScale = Min(pixelScaleRealAxis, pixelScaleImagAxis)
+
+	pixelOffsetReal := float64(width-1)/2.0
+	pixelOffsetImag := float64(height-1)/2.0
+
+	return pixelScale, pixelOffsetReal, pixelOffsetImag
+}
+
+func (p *Plane) Calculate_Coordinates_At_Point(config Config) (float64, float64) {
+	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.Get_Scale(config.zoom, config.height, config.width)
+
+	var real = config.midX + (float64(config.pointX) - pixelOffsetReal) * pixelScale
+	var imag = config.midY - pixelScale * (-1.0 * float64(config.pointY) + pixelOffsetImag);
+
+	return real, imag
 }
