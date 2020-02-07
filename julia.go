@@ -1,11 +1,6 @@
 package main
 import (
 	"sync"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/jpeg"
-	"os"
 	"fmt"
 	"strconv"
 	"math"
@@ -44,9 +39,7 @@ func (m *Julia) Image(c Config) {
 
 	c.bailout = Determine_Bailout(c)
 
-	bounds := image.Rect(0, 0, c.width, c.width)
-	mbi := image.NewNRGBA(bounds)
-	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
+	mbi := Initialise_Image(c)
 
 	plotted_channel := make(chan PlottedPoint)
 
@@ -64,18 +57,7 @@ func (m *Julia) Image(c Config) {
 		c.filename = "julia_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
 	}
 	
-	file, err := os.Create(c.output + "/" + c.filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if err = jpeg.Encode(file, mbi, &jpeg.Options{jpeg.DefaultQuality}); err != nil {
-		fmt.Println(err)
-	}
-
-	if err = file.Close(); err != nil {
-		fmt.Println(err)
-	}
+	Save_Image(mbi, c.output, c.filename)
 
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
@@ -160,11 +142,4 @@ func Quadratic(a float64, b float64, c float64) (float64, float64) {
 	d := math.Sqrt(b*b - 4 * a * c)
 
 	return (-1.0*b + d) / 2.0 * a, (-1.0*b - d) / 2.0 * a
-}
-
-func Max(a float64, b float64) float64 {
-	if a > b {
-		return a
-	}
-	return b
 }

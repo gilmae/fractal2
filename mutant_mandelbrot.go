@@ -1,11 +1,6 @@
 package main
 import (
 	"sync"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/jpeg"
-	"os"
 	"fmt"
 	"strconv"
 )
@@ -41,9 +36,7 @@ func (m MutantMandelbrot) Process(c Config) {
 func (m *MutantMandelbrot) Image(c Config) {
 	initialise_gradient(c.gradient)
 	
-	bounds := image.Rect(0, 0, c.width, c.width)
-	mbi := image.NewNRGBA(bounds)
-	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
+	mbi := Initialise_Image(c)
 
 	plotted_channel := make(chan PlottedPoint)
 
@@ -61,18 +54,7 @@ func (m *MutantMandelbrot) Image(c Config) {
 		c.filename = "mutant_mb_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
 	}
 	
-	file, err := os.Create(c.output + "/" + c.filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if err = jpeg.Encode(file, mbi, &jpeg.Options{jpeg.DefaultQuality}); err != nil {
-		fmt.Println(err)
-	}
-
-	if err = file.Close(); err != nil {
-		fmt.Println(err)
-	}
+	Save_Image(mbi, c.output, c.filename)
 
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }

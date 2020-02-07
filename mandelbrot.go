@@ -1,11 +1,7 @@
 package main
 import (
 	"sync"
-	"image"
-	"image/color"
-	"image/draw"
-	"image/jpeg"
-	"os"
+
 	"fmt"
 	"strconv"
 )
@@ -41,9 +37,7 @@ func (m *Mandelbrot) Process(c Config) {
 func (m *Mandelbrot) Image(c Config) {
 	initialise_gradient(c.gradient)
 	
-	bounds := image.Rect(0, 0, c.width, c.width)
-	mbi := image.NewNRGBA(bounds)
-	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
+	mbi := Initialise_Image(c)
 
 	plotted_channel := make(chan PlottedPoint)
 
@@ -61,24 +55,13 @@ func (m *Mandelbrot) Image(c Config) {
 		c.filename = "mandelbrot_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
 	}
 	
-	file, err := os.Create(c.output + "/" + c.filename)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	if err = jpeg.Encode(file, mbi, &jpeg.Options{jpeg.DefaultQuality}); err != nil {
-		fmt.Println(err)
-	}
-
-	if err = file.Close(); err != nil {
-		fmt.Println(err)
-	}
+	Save_Image(mbi, c.output, c.filename)
 
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
 
 func (m *Mandelbrot) Calculate_Coordinates_At_Point(config Config) (float64, float64) {
-	var pixelScale = (m.rMax - m.rMin) / float64(config.width-1)
+	var pixelScale = ((m.rMax - m.rMin) / float64(config.width-1)) / config.zoom
 	pixelOffset := float64(config.width-1)/2.0
 
 	var real = config.midX + (float64(config.pointX) - pixelOffset) * pixelScale
@@ -88,8 +71,13 @@ func (m *Mandelbrot) Calculate_Coordinates_At_Point(config Config) (float64, flo
 }
 
 func (m *Mandelbrot) Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint){
-	var pixelScale = (m.rMax - m.rMin) / float64(config.width-1)
-	pixelOffset := float64(config.width-1)/2.0
+	var pixelScaleRealAxis = (m.rMax - m.rMin) / float64(config.width-1) / config.zoom
+	var pixelScaleImagAxis = (m.iMax - m.iMin) / float64(config.height-1) / config.zoom
+
+	var pixelScale = Min(pixelScaleRealAxis, pixelScaleImagAxis)
+
+	pixelOffsetReal := float64(config.width-1)/2.0
+	pixelOffsetImag := float64(config.height-1)/2.0
 
 	points_channel := make(chan Point)
 
@@ -107,9 +95,9 @@ func (m *Mandelbrot) Iterate_Over_Points(config Config, plotted_channel chan Plo
 	}
 
 	for x := 0; x <  config.width; x++ {
-		r:= config.midX + (float64(x) - pixelOffset) * pixelScale
-		for y := 0; y < config.width; y++ {
-			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffset);
+		r:= config.midX + (float64(x) - pixelOffsetReal) * pixelScale
+		for y := 0; y < config.height; y++ {
+			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffsetImag);
 			points_channel <- Point{r, i, x, y}
 		}
 	}

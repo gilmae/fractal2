@@ -2,6 +2,13 @@ package main
 
 import (
 	"flag"
+	"image"
+	"image/color"
+	"image/draw"
+	"image/jpeg"
+	"fmt"
+	"os"
+
 )
 
 const (
@@ -95,4 +102,40 @@ func Get_Config() Config {
 	flag.Parse()
 
 	return c
+}
+
+func Max(a float64, b float64) float64 {
+	if a > b {
+		return a
+	}
+	return b
+}
+
+func Min(a float64, b float64) float64 {
+	if a > b {
+		return b
+	}
+	return a
+}
+
+func Initialise_Image(c Config) *image.NRGBA {
+	bounds := image.Rect(0, 0, c.width, c.height)
+	mbi := image.NewNRGBA(bounds)
+	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
+	return mbi
+}
+
+func Save_Image(mbi *image.NRGBA, filepath string, filename string){
+	file, err := os.Create(filepath + "/" + filename)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if err = jpeg.Encode(file, mbi, &jpeg.Options{jpeg.DefaultQuality}); err != nil {
+		fmt.Println(err)
+	}
+
+	if err = file.Close(); err != nil {
+		fmt.Println(err)
+	}
 }
