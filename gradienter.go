@@ -18,17 +18,17 @@ const ( // Colour Modes
 )
 
 const (
-	PaletteLength = 16
+	paletteLength = 16
 )
 
 var redInterpolant interpolation.MonotonicCubic
 var greenInterpolant interpolation.MonotonicCubic
 var blueInterpolant interpolation.MonotonicCubic
 
-func initialiseGradient(gradient_str string) {
+func initialiseGradient(gradientStr string) {
 	var g [][]string
 
-	byt := []byte(gradient_str)
+	byt := []byte(gradientStr)
 	_ = json.Unmarshal(byt, &g)
 	var size = len(g)
 	var xSequence = make([]float64, size)
@@ -49,16 +49,16 @@ func initialiseGradient(gradient_str string) {
 	blueInterpolant = interpolation.CreateMonotonicCubic(xSequence, bluepoints)
 }
 
-func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) color.NRGBA {
-	if colour_mode == trueColouring {
+func getPixelColour(point PlottedPoint, maxIterations int, colourMode string) color.NRGBA {
+	if colourMode == trueColouring {
 
-		var gradient_position = float64(point.Iterations) / float64(maxIterations)
-		var redpoint = redInterpolant(gradient_position)
-		var greenpoint = greenInterpolant(gradient_position)
-		var bluepoint = blueInterpolant(gradient_position)
+		var gradientPosition = float64(point.Iterations) / float64(maxIterations)
+		var redpoint = redInterpolant(gradientPosition)
+		var greenpoint = greenInterpolant(gradientPosition)
+		var bluepoint = blueInterpolant(gradientPosition)
 
 		return color.NRGBA{uint8(redpoint), uint8(greenpoint), uint8(bluepoint), 255}
-	} else if colour_mode == smoothColouring {
+	} else if colourMode == smoothColouring {
 
 		palette := fillPalette()
 
@@ -79,7 +79,7 @@ func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) c
 
 		return color.NRGBA{uint8(r), uint8(g), uint8(b), 255}
 
-	} else if colour_mode == bandedColouring {
+	} else if colourMode == bandedColouring {
 
 		palette := fillPalette()
 		return palette[point.Iterations%len(palette)]
@@ -91,9 +91,9 @@ func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) c
 }
 
 func fillPalette() []color.NRGBA {
-	var palette = make([]color.NRGBA, PaletteLength)
-	for i := 0; i < PaletteLength; i++ {
-		var point = float64(i) / float64(PaletteLength)
+	var palette = make([]color.NRGBA, paletteLength)
+	for i := 0; i < paletteLength; i++ {
+		var point = float64(i) / float64(paletteLength)
 
 		var redpoint = redInterpolant(point)
 		var greenpoint = greenInterpolant(point)

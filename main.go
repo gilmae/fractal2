@@ -18,11 +18,11 @@ const (
 
 // Fractals supported
 const (
-	MutantMandelbrotAlgoValue = "mutant_mandelbrot"
-	MandelbrotAlgoValue       = "mandelbrot"
-	BurningShipAlgoValue      = "ship"
-	JuliaAlgoValue            = "julia"
-	Z1ZcZIAlgoValue           = "z1zczi"
+	mutantMandelbrotAlgoValue = "mutant_mandelbrot"
+	mandelbrotAlgoValue       = "mandelbrot"
+	burningShipAlgoValue      = "ship"
+	juliaAlgoValue            = "julia"
+	z1ZcZIAlgoValue           = "z1zczi"
 )
 
 type config struct {
@@ -76,21 +76,21 @@ type PlottedPoint struct {
 func main() {
 	c := getConfig()
 
-	if c.algorithm == MandelbrotAlgoValue {
+	if c.algorithm == mandelbrotAlgoValue {
 		m := newMandelbrot()
 		m.process(c)
-	} else if c.algorithm == MutantMandelbrotAlgoValue {
+	} else if c.algorithm == mutantMandelbrotAlgoValue {
 		m := newMutantMandelbrot()
 
 		m.process(c)
-	} else if c.algorithm == BurningShipAlgoValue {
+	} else if c.algorithm == burningShipAlgoValue {
 		b := newBurningShip()
 
 		b.process(c)
-	} else if c.algorithm == JuliaAlgoValue {
+	} else if c.algorithm == juliaAlgoValue {
 		j := newJulia()
 		j.process(c)
-	} else if c.algorithm == Z1ZcZIAlgoValue {
+	} else if c.algorithm == z1ZcZIAlgoValue {
 		o := newZ1ZcZi()
 		o.process(c)
 	}
@@ -100,7 +100,7 @@ func main() {
 func getConfig() config {
 	var c config
 
-	var supportedAlgorithms = []string{MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
+	var supportedAlgorithms = []string{mandelbrotAlgoValue, juliaAlgoValue, burningShipAlgoValue, mutantMandelbrotAlgoValue, z1ZcZIAlgoValue}
 	var supportedColourings = []string{trueColouring, bandedColouring, smoothColouring, noColouring}
 
 	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: "+strings.Join(supportedAlgorithms, ", "))
@@ -152,7 +152,7 @@ func saveimage(mbi *image.NRGBA, filepath string, filename string) {
 		fmt.Println(err)
 	}
 
-	if err = jpeg.Encode(file, mbi, &jpeg.Options{jpeg.DefaultQuality}); err != nil {
+	if err = jpeg.Encode(file, mbi, &jpeg.Options{}); err != nil {
 		fmt.Println(err)
 	}
 
