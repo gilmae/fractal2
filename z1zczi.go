@@ -6,15 +6,15 @@ import (
 	"strconv"
 )
 
-type Z1ZcZiMandelbrot struct {
+type z1ZcZiPlane struct {
 	Plane
 }
 
-func newZ1ZcZiMandelbrot() Z1ZcZiMandelbrot {
-	return Z1ZcZiMandelbrot{Plane{-2.25, 0.75, -1.5, 1.5}}
+func newZ1ZcZi() z1ZcZiPlane {
+	return z1ZcZiPlane{Plane{-2.25, 0.75, -1.5, 1.5}}
 }
 
-func (m Z1ZcZiMandelbrot) process(c Config) {
+func (m z1ZcZiPlane) process(c config) {
 	if c.midX == -99.0 {
 		c.midX = (m.rMax + m.rMin) / 2.0
 	}
@@ -31,12 +31,12 @@ func (m Z1ZcZiMandelbrot) process(c Config) {
 	}
 }
 
-func (m *Z1ZcZiMandelbrot) image(c Config) {
+func (m *z1ZcZiPlane) image(c config) {
 	initialiseGradient(c.gradient)
 
 	mbi := initialiseimage(c)
 
-	plotted_channel := make(chan PlottedPoint)
+	plottedChannel := make(chan PlottedPoint)
 
 	go func(points <-chan PlottedPoint) {
 		for p := range points {
@@ -44,9 +44,9 @@ func (m *Z1ZcZiMandelbrot) image(c Config) {
 				mbi.Set(p.X, p.Y, getPixelColour(p, c.maxIterations, c.colourMode))
 			}
 		}
-	}(plotted_channel)
+	}(plottedChannel)
 
-	var checkIfPointEscapes escapeCalculator = func(r float64, imaginary float64, config Config) (bool, int, float64, float64) {
+	var checkIfPointEscapes escapeCalculator = func(r float64, imaginary float64, config config) (bool, int, float64, float64) {
 		var z = complex(0.0, 0.0)
 		var c = complex(r, imaginary)
 		var count int
@@ -58,7 +58,7 @@ func (m *Z1ZcZiMandelbrot) image(c Config) {
 		return count < config.maxIterations, count, real(z), imag(z)
 	}
 
-	m.iterateOverPoints(c, plotted_channel, checkIfPointEscapes)
+	m.iterateOverPoints(c, plottedChannel, checkIfPointEscapes)
 
 	if c.filename == "" {
 		c.filename = "z1zczi_mb_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"

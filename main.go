@@ -25,7 +25,7 @@ const (
 	Z1ZcZIAlgoValue           = "z1zczi"
 )
 
-type Config struct {
+type config struct {
 	algorithm     string
 	maxIterations int
 	bailout       float64
@@ -91,14 +91,14 @@ func main() {
 		j := newJulia()
 		j.process(c)
 	} else if c.algorithm == Z1ZcZIAlgoValue {
-		o := newZ1ZcZiMandelbrot()
+		o := newZ1ZcZi()
 		o.process(c)
 	}
 
 }
 
-func getConfig() Config {
-	var c Config
+func getConfig() config {
+	var c config
 
 	var supportedAlgorithms = []string{MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
 	var supportedColourings = []string{TrueColouring, BandedColouring, SmoothColouring, NoColouring}
@@ -139,7 +139,7 @@ func min(a float64, b float64) float64 {
 	return a
 }
 
-func initialiseimage(c Config) *image.NRGBA {
+func initialiseimage(c config) *image.NRGBA {
 	bounds := image.Rect(0, 0, c.width, c.height)
 	mbi := image.NewNRGBA(bounds)
 	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
@@ -173,7 +173,7 @@ func (p *Plane) getScale(zoom float64, height int, width int) (float64, float64,
 	return pixelScale, pixelOffsetReal, pixelOffsetImag
 }
 
-func (p *Plane) calculateCoordinatesAtPoint(config Config) (float64, float64) {
+func (p *Plane) calculateCoordinatesAtPoint(config config) (float64, float64) {
 	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.getScale(config.zoom, config.height, config.width)
 
 	var real = config.midX + (float64(config.pointX)-pixelOffsetReal)*pixelScale
@@ -182,18 +182,18 @@ func (p *Plane) calculateCoordinatesAtPoint(config Config) (float64, float64) {
 	return real, imag
 }
 
-func (p *Plane) iterateOverPoints(config Config, plotted_channel chan PlottedPoint, calc escapeCalculator) {
+func (p *Plane) iterateOverPoints(config config, plottedChannel chan PlottedPoint, calc escapeCalculator) {
 	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.getScale(config.zoom, config.height, config.width)
 
-	points_channel := make(chan Point)
+	pointsChannel := make(chan Point)
 
 	var wg sync.WaitGroup
 	for i := 0; i < 5; i++ {
 		wg.Add(1)
 		go func() {
-			for p := range points_channel {
+			for p := range pointsChannel {
 				var escaped, iteration, finalReal, finalImag = calc(p.real, p.imag, config)
-				plotted_channel <- PlottedPoint{p.X, p.Y, finalReal, finalImag, iteration, escaped}
+				plottedChannel <- PlottedPoint{p.X, p.Y, finalReal, finalImag, iteration, escaped}
 			}
 			wg.Done()
 		}()
@@ -204,13 +204,13 @@ func (p *Plane) iterateOverPoints(config Config, plotted_channel chan PlottedPoi
 		r := config.midX + (float64(x)-pixelOffsetReal)*pixelScale
 		for y := 0; y < config.height; y++ {
 			i := config.midY + pixelScale*(-1.0*float64(y)+pixelOffsetImag)
-			points_channel <- Point{x, y, r, i}
+			pointsChannel <- Point{x, y, r, i}
 		}
 	}
 
-	close(points_channel)
+	close(pointsChannel)
 
 	wg.Wait()
 }
 
-type escapeCalculator func(real float64, imag float64, config Config) (escaped bool, iterations int, finalReal float64, finalImaginary float64)
+type escapeCalculator func(real float64, imag float64, config config) (escaped bool, iterations int, finalReal float64, finalImaginary float64)

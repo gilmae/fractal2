@@ -6,15 +6,16 @@ import (
 	"strconv"
 )
 
-type Mandelbrot struct {
+// A Mandelbrot represents the strongly typed planar space for the mandelbrot fractal
+type mandelbrotPlane struct {
 	Plane
 }
 
-func newMandelbrot() Mandelbrot {
-	return Mandelbrot{Plane{-2.25, 0.75, -1.5, 1.5}}
+func newMandelbrot() mandelbrotPlane {
+	return mandelbrotPlane{Plane{-2.25, 0.75, -1.5, 1.5}}
 }
 
-func (m *Mandelbrot) process(c Config) {
+func (m *mandelbrotPlane) process(c config) {
 	if c.midX == -99.0 {
 		c.midX = (m.rMax + m.rMin) / 2.0
 	}
@@ -31,12 +32,12 @@ func (m *Mandelbrot) process(c Config) {
 	}
 }
 
-func (m *Mandelbrot) image(c Config) {
+func (m *mandelbrotPlane) image(c config) {
 	initialiseGradient(c.gradient)
 
 	mbi := initialiseimage(c)
 
-	plotted_channel := make(chan PlottedPoint)
+	plottedChannel := make(chan PlottedPoint)
 
 	go func(points <-chan PlottedPoint) {
 		for p := range points {
@@ -44,9 +45,9 @@ func (m *Mandelbrot) image(c Config) {
 				mbi.Set(p.X, p.Y, getPixelColour(p, c.maxIterations, c.colourMode))
 			}
 		}
-	}(plotted_channel)
+	}(plottedChannel)
 
-	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config Config) (bool, int, float64, float64) {
+	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config config) (bool, int, float64, float64) {
 		// Check that the point isn't in the main cardioid or the period-2 bulb.
 		// If it is, just bail out now
 		if ((real+1.0)*(real+1.0))+imag*imag <= 0.0625 {
@@ -100,7 +101,7 @@ func (m *Mandelbrot) image(c Config) {
 		return iteration < config.maxIterations, iteration, x, y
 	}
 
-	m.iterateOverPoints(c, plotted_channel, checkIfPointEscapes)
+	m.iterateOverPoints(c, plottedChannel, checkIfPointEscapes)
 
 	if c.filename == "" {
 		c.filename = "mandelbrot_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"

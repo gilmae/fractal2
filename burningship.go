@@ -6,17 +6,16 @@ import (
 	"strconv"
 )
 
-/* Good mid point is 0.45, -1 */
-
-type BurningShip struct {
+// A BurningShip represents the strongly typed planar space for the Burning Ship fractal
+type burningShipPlane struct {
 	Plane
 }
 
-func newBurningShip() BurningShip {
-	return BurningShip{Plane{-1.5, 2.0, -2.0, 1.5}}
+func newBurningShip() burningShipPlane {
+	return burningShipPlane{Plane{-1.5, 2.0, -2.0, 1.5}}
 }
 
-func (m *BurningShip) process(c Config) {
+func (m *burningShipPlane) process(c config) {
 	if c.midX == -99.0 {
 		c.midX = (m.rMax + m.rMin) / 2.0
 	}
@@ -32,12 +31,12 @@ func (m *BurningShip) process(c Config) {
 	}
 }
 
-func (m *BurningShip) image(c Config) {
+func (m *burningShipPlane) image(c config) {
 	initialiseGradient(c.gradient)
 
 	mbi := initialiseimage(c)
 
-	plotted_channel := make(chan PlottedPoint)
+	plottedChannel := make(chan PlottedPoint)
 
 	go func(points <-chan PlottedPoint) {
 		for p := range points {
@@ -45,9 +44,9 @@ func (m *BurningShip) image(c Config) {
 				mbi.Set(p.X, p.Y, getPixelColour(p, c.maxIterations, c.colourMode))
 			}
 		}
-	}(plotted_channel)
+	}(plottedChannel)
 
-	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config Config) (bool, int, float64, float64) {
+	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config config) (bool, int, float64, float64) {
 		var zReal = real
 		var zImag = imag
 		var iteration int
@@ -64,7 +63,7 @@ func (m *BurningShip) image(c Config) {
 		return iteration < config.maxIterations, iteration, zReal, zImag
 	}
 
-	m.iterateOverPoints(c, plotted_channel, checkIfPointEscapes)
+	m.iterateOverPoints(c, plottedChannel, checkIfPointEscapes)
 
 	if c.filename == "" {
 		c.filename = "ship_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"

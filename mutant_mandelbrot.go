@@ -5,15 +5,16 @@ import (
 	"strconv"
 )
 
-type MutantMandelbrot struct {
+// A MutantMandelbrot represents the strongly typed planar space for the Mutated Mandelbrot fractal
+type mutantMandelbrotPlane struct {
 	Plane
 }
 
-func newMutantMandelbrot() MutantMandelbrot {
-	return MutantMandelbrot{Plane{-2.25, 0.75, -1.5, 1.5}}
+func newMutantMandelbrot() mutantMandelbrotPlane {
+	return mutantMandelbrotPlane{Plane{-2.25, 0.75, -1.5, 1.5}}
 }
 
-func (m MutantMandelbrot) process(c Config) {
+func (m mutantMandelbrotPlane) process(c config) {
 	if c.midX == -99.0 {
 		c.midX = (m.rMax + m.rMin) / 2.0
 	}
@@ -30,12 +31,12 @@ func (m MutantMandelbrot) process(c Config) {
 	}
 }
 
-func (m *MutantMandelbrot) image(c Config) {
+func (m *mutantMandelbrotPlane) image(c config) {
 	initialiseGradient(c.gradient)
 
 	mbi := initialiseimage(c)
 
-	plotted_channel := make(chan PlottedPoint)
+	plottedChannel := make(chan PlottedPoint)
 
 	go func(points <-chan PlottedPoint) {
 		for p := range points {
@@ -43,9 +44,9 @@ func (m *MutantMandelbrot) image(c Config) {
 				mbi.Set(p.X, p.Y, getPixelColour(p, c.maxIterations, c.colourMode))
 			}
 		}
-	}(plotted_channel)
+	}(plottedChannel)
 
-	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config Config) (bool, int, float64, float64) {
+	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config config) (bool, int, float64, float64) {
 		var zx = real
 		var zy = imag
 		var x = real
@@ -61,15 +62,15 @@ func (m *MutantMandelbrot) image(c Config) {
 				n--
 				p++
 			}
-			var new_zx = zx*zx - zy*zy + x
+			var newZx = zx*zx - zy*zy + x
 			zy = 2*zx*zy + y
-			zx = new_zx
+			zx = newZx
 		}
 
 		return count < config.maxIterations, count, zx, zy
 	}
 
-	m.iterateOverPoints(c, plotted_channel, checkIfPointEscapes)
+	m.iterateOverPoints(c, plottedChannel, checkIfPointEscapes)
 
 	if c.filename == "" {
 		c.filename = "mutant_mb_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"

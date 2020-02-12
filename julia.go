@@ -6,15 +6,16 @@ import (
 	"strconv"
 )
 
-type Julia struct {
+// A Julia represents the strongly typed planar space for a Julia fractal
+type juliaPlane struct {
 	Plane
 }
 
-func newJulia() Julia {
-	return Julia{Plane{-2.0, 2.0, -2.0, 2.0}}
+func newJulia() juliaPlane {
+	return juliaPlane{Plane{-2.0, 2.0, -2.0, 2.0}}
 }
 
-func (m *Julia) process(c Config) {
+func (m *juliaPlane) process(c config) {
 	if c.midX == -99.0 {
 		c.midX = (m.rMax + m.rMin) / 2.0
 	}
@@ -31,14 +32,14 @@ func (m *Julia) process(c Config) {
 	}
 }
 
-func (m *Julia) image(c Config) {
+func (m *juliaPlane) image(c config) {
 	initialiseGradient(c.gradient)
 
 	c.bailout = determineJuliaBailout(c)
 
 	mbi := initialiseimage(c)
 
-	plotted_channel := make(chan PlottedPoint)
+	plottedChannel := make(chan PlottedPoint)
 
 	go func(points <-chan PlottedPoint) {
 		for p := range points {
@@ -46,9 +47,9 @@ func (m *Julia) image(c Config) {
 				mbi.Set(p.X, p.Y, getPixelColour(p, c.maxIterations, c.colourMode))
 			}
 		}
-	}(plotted_channel)
+	}(plottedChannel)
 
-	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config Config) (bool, int, float64, float64) {
+	var checkIfPointEscapes escapeCalculator = func(real float64, imag float64, config config) (bool, int, float64, float64) {
 		var iteration int
 		zR := real
 		zI := imag
@@ -62,7 +63,7 @@ func (m *Julia) image(c Config) {
 		return iteration < config.maxIterations, iteration, zR, zI
 	}
 
-	m.iterateOverPoints(c, plotted_channel, checkIfPointEscapes)
+	m.iterateOverPoints(c, plottedChannel, checkIfPointEscapes)
 
 	if c.filename == "" {
 		c.filename = "julia_" + strconv.FormatFloat(c.midX, 'E', -1, 64) + "_" + strconv.FormatFloat(c.midY, 'E', -1, 64) + "_" + strconv.FormatFloat(c.zoom, 'E', -1, 64) + ".jpg"
@@ -73,7 +74,7 @@ func (m *Julia) image(c Config) {
 	fmt.Printf("%s/%s\n", c.output, c.filename)
 }
 
-func determineJuliaBailout(config Config) float64 {
+func determineJuliaBailout(config config) float64 {
 	/* Where c is the constant in the Julia algorithim, expressed as a complex number,
 	Bailout should be R where R**2 - R = |c|.
 	That's the quadratic equation, which will give us two values. We'll take the larger.
