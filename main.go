@@ -2,14 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"image"
 	"image/color"
 	"image/draw"
 	"image/jpeg"
-	"fmt"
 	"os"
-	"sync"
 	"strings"
+	"sync"
 )
 
 const (
@@ -19,96 +19,97 @@ const (
 // Fractals supported
 const (
 	MutantMandelbrotAlgoValue = "mutant_mandelbrot"
-	MandelbrotAlgoValue = "mandelbrot"
-	BurningShipAlgoValue = "ship"
-	JuliaAlgoValue = "julia"
-	Z1ZcZIAlgoValue = "z1zczi"
+	MandelbrotAlgoValue       = "mandelbrot"
+	BurningShipAlgoValue      = "ship"
+	JuliaAlgoValue            = "julia"
+	Z1ZcZIAlgoValue           = "z1zczi"
 )
 
 type Config struct {
-	algorithm			string
-	maxIterations		int
-	bailout				float64
-	width				int
-	height				int
-	pointX				int
-	pointY 				int
-	midX 				float64
-	midY 				float64
-	zoom 				float64
-	output 				string
-	filename 			string
-	gradient 			string
-	mode 				string
-	colourMode 			string
-	constR 				float64
-	constI				float64
+	algorithm     string
+	maxIterations int
+	bailout       float64
+	width         int
+	height        int
+	pointX        int
+	pointY        int
+	midX          float64
+	midY          float64
+	zoom          float64
+	output        string
+	filename      string
+	gradient      string
+	mode          string
+	colourMode    string
+	constR        float64
+	constI        float64
 }
 
+// A Plane represents the base confines of the complex plane for a fractal based
+// an escape time function.
 type Plane struct {
-	rMin float64
-	rMax float64
-	iMin float64
-	iMax float64
+	rMin float64 // The smallest value of the real component
+	rMax float64 // The largest value of the real component
+	iMin float64 // The smallest value of the imaginary component
+	iMax float64 // The largest value of the imaginary component
 }
 
+// A Point represents a set of coordinates in the complex plane,
+// and the coresponding point in a bitmap
 type Point struct {
-	real		float64
-	imag		float64
-	X       	int
-	Y       	int
-	
+	X    int     // The X coordinated in the bitmap, where 0 is the left column
+	Y    int     // The Y coordinated in the bitmap, where 0 is the top line
+	real float64 // The scaled real component of the complex coordinate
+	imag float64 // The scaled real component of the complex coordinate
 }
 
+// A PlottedPoint represents the result of the escape time function
 type PlottedPoint struct {
-	X			int
-	Y			int
-	real		float64
-	imag		float64
-	Iterations	int
-	Escaped		bool
+	X          int     // The X coordinated in the bitmap, where 0 is the left column
+	Y          int     // The Y coordinated in the bitmap, where 0 is the top line
+	real       float64 // The real component of final value of z in the escape time calculation
+	imag       float64 // The imaginary component of final value of z in the escape time calculation
+	Iterations int     // The number of iterations it took to determine a result
+	Escaped    bool    // True if the coordinate escaped the escape time function
 }
-
 
 func main() {
-	c := Get_Config()
+	c := getConfig()
 
-	if (c.algorithm == MandelbrotAlgoValue) {
-		m := NewMandelbrot()
-		m.Process(c)
-	} else if (c.algorithm == MutantMandelbrotAlgoValue) {
-		m := NewMutantMandelbrot()
-	
-		m.Process(c)
+	if c.algorithm == MandelbrotAlgoValue {
+		m := newMandelbrot()
+		m.process(c)
+	} else if c.algorithm == MutantMandelbrotAlgoValue {
+		m := newMutantMandelbrot()
+
+		m.process(c)
 	} else if c.algorithm == BurningShipAlgoValue {
-		b := NewBurningShip()
-	
-		b.Process(c)
+		b := newBurningShip()
+
+		b.process(c)
 	} else if c.algorithm == JuliaAlgoValue {
-		j := NewJulia()
-		j.Process(c)
+		j := newJulia()
+		j.process(c)
 	} else if c.algorithm == Z1ZcZIAlgoValue {
-		o := NewZ1ZcZiMandelbrot()
-		o.Process(c)
+		o := newZ1ZcZiMandelbrot()
+		o.process(c)
 	}
 
 }
 
-
-
-func Get_Config() Config {
+func getConfig() Config {
 	var c Config
 
-	var supported_algorithms = []string {MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
-	var supported_colourings = []string {TrueColouring, BandedColouring, SmoothColouring, NoColouring}
+	var supportedAlgorithms = []string{MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
+	var supportedColourings = []string{TrueColouring, BandedColouring, SmoothColouring, NoColouring}
 
-	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + strings.Join(supported_algorithms,", "))
+	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: "+strings.Join(supportedAlgorithms, ", "))
 	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")
 	flag.Float64Var(&c.midY, "i", -99.0, "Imaginary component of the midpoint.")
 	flag.Float64Var(&c.zoom, "z", 1, "Zoom level.")
 	flag.StringVar(&c.output, "o", ".", "Output path.")
 	flag.StringVar(&c.filename, "f", "", "Output file name.")
-	flag.StringVar(&c.colourMode, "c", "none", "Colour mode: " + strings.Join(supported_colourings,", "))
+	flag.StringVar(&c.colourMode, "c", "none", "Colour mode: "+strings.Join(supportedColourings, ", "))
 	flag.Float64Var(&c.bailout, "b", 4.0, "Bailout value.")
 	flag.IntVar(&c.width, "w", 1600, "Width of render.")
 	flag.IntVar(&c.height, "h", 1600, "Height of render.")
@@ -124,28 +125,28 @@ func Get_Config() Config {
 	return c
 }
 
-func Max(a float64, b float64) float64 {
+func max(a float64, b float64) float64 {
 	if a > b {
 		return a
 	}
 	return b
 }
 
-func Min(a float64, b float64) float64 {
+func min(a float64, b float64) float64 {
 	if a > b {
 		return b
 	}
 	return a
 }
 
-func Initialise_Image(c Config) *image.NRGBA {
+func initialiseimage(c Config) *image.NRGBA {
 	bounds := image.Rect(0, 0, c.width, c.height)
 	mbi := image.NewNRGBA(bounds)
 	draw.Draw(mbi, bounds, image.NewUniform(color.Black), image.ZP, draw.Src)
 	return mbi
 }
 
-func Save_Image(mbi *image.NRGBA, filepath string, filename string){
+func saveimage(mbi *image.NRGBA, filepath string, filename string) {
 	file, err := os.Create(filepath + "/" + filename)
 	if err != nil {
 		fmt.Println(err)
@@ -160,29 +161,29 @@ func Save_Image(mbi *image.NRGBA, filepath string, filename string){
 	}
 }
 
-func (p *Plane) Get_Scale(zoom float64, height int, width int) (float64, float64, float64) {
+func (p *Plane) getScale(zoom float64, height int, width int) (float64, float64, float64) {
 	var pixelScaleRealAxis = (p.rMax - p.rMin) / float64(width-1) / zoom
 	var pixelScaleImagAxis = (p.iMax - p.iMin) / float64(height-1) / zoom
 
-	var pixelScale = Min(pixelScaleRealAxis, pixelScaleImagAxis)
+	var pixelScale = min(pixelScaleRealAxis, pixelScaleImagAxis)
 
-	pixelOffsetReal := float64(width-1)/2.0
-	pixelOffsetImag := float64(height-1)/2.0
+	pixelOffsetReal := float64(width-1) / 2.0
+	pixelOffsetImag := float64(height-1) / 2.0
 
 	return pixelScale, pixelOffsetReal, pixelOffsetImag
 }
 
-func (p *Plane) Calculate_Coordinates_At_Point(config Config) (float64, float64) {
-	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.Get_Scale(config.zoom, config.height, config.width)
+func (p *Plane) calculateCoordinatesAtPoint(config Config) (float64, float64) {
+	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.getScale(config.zoom, config.height, config.width)
 
-	var real = config.midX + (float64(config.pointX) - pixelOffsetReal) * pixelScale
-	var imag = config.midY - pixelScale * (-1.0 * float64(config.pointY) + pixelOffsetImag);
+	var real = config.midX + (float64(config.pointX)-pixelOffsetReal)*pixelScale
+	var imag = config.midY - pixelScale*(-1.0*float64(config.pointY)+pixelOffsetImag)
 
 	return real, imag
 }
 
-func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedPoint, calc EscapeCalculator){
-	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.Get_Scale(config.zoom, config.height, config.width)
+func (p *Plane) iterateOverPoints(config Config, plotted_channel chan PlottedPoint, calc escapeCalculator) {
+	var pixelScale, pixelOffsetReal, pixelOffsetImag = p.getScale(config.zoom, config.height, config.width)
 
 	points_channel := make(chan Point)
 
@@ -199,11 +200,11 @@ func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 
 	}
 
-	for x := 0; x <  config.width; x++ {
-		r:= config.midX + (float64(x) - pixelOffsetReal) * pixelScale
+	for x := 0; x < config.width; x++ {
+		r := config.midX + (float64(x)-pixelOffsetReal)*pixelScale
 		for y := 0; y < config.height; y++ {
-			i := config.midY - pixelScale * (-1.0 * float64(y) + pixelOffsetImag);
-			points_channel <- Point{r, i, x, y}
+			i := config.midY + pixelScale*(-1.0*float64(y)+pixelOffsetImag)
+			points_channel <- Point{x, y, r, i}
 		}
 	}
 
@@ -212,5 +213,4 @@ func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 	wg.Wait()
 }
 
-
-type EscapeCalculator func(real float64, imag float64, config Config) (escaped bool, iterations int, finalReal float64, finalImaginary float64)
+type escapeCalculator func(real float64, imag float64, config Config) (escaped bool, iterations int, finalReal float64, finalImaginary float64)

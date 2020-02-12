@@ -25,7 +25,7 @@ var redInterpolant interpolation.MonotonicCubic
 var greenInterpolant interpolation.MonotonicCubic
 var blueInterpolant interpolation.MonotonicCubic
 
-func initialise_gradient(gradient_str string) {
+func initialiseGradient(gradient_str string) {
 	var g [][]string
 
 	byt := []byte(gradient_str)
@@ -49,7 +49,7 @@ func initialise_gradient(gradient_str string) {
 	blueInterpolant = interpolation.CreateMonotonicCubic(xSequence, bluepoints)
 }
 
-func get_colour(point PlottedPoint, maxIterations int, colour_mode string) color.NRGBA {
+func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) color.NRGBA {
 	if colour_mode == "true" {
 
 		var gradient_position = float64(point.Iterations) / float64(maxIterations)
@@ -60,9 +60,9 @@ func get_colour(point PlottedPoint, maxIterations int, colour_mode string) color
 		return color.NRGBA{uint8(redpoint), uint8(greenpoint), uint8(bluepoint), 255}
 	} else if colour_mode == "smooth" {
 
-		palette := Fill_Palette()
+		palette := fillPalette()
 
-		jitteredEscape := Jitter(point)
+		jitteredEscape := jitter(point)
 		index1 := int(math.Abs(jitteredEscape))
 		t2 := jitteredEscape - float64(index1)
 		t1 := 1 - t2
@@ -81,7 +81,7 @@ func get_colour(point PlottedPoint, maxIterations int, colour_mode string) color
 
 	} else if colour_mode == "banded" {
 
-		palette := Fill_Palette()
+		palette := fillPalette()
 		return palette[point.Iterations%len(palette)]
 
 	} else {
@@ -90,7 +90,7 @@ func get_colour(point PlottedPoint, maxIterations int, colour_mode string) color
 	}
 }
 
-func Fill_Palette() []color.NRGBA {
+func fillPalette() []color.NRGBA {
 	var palette = make([]color.NRGBA, PaletteLength)
 	for i := 0; i < PaletteLength; i++ {
 		var point = float64(i) / float64(PaletteLength)
@@ -106,7 +106,7 @@ func Fill_Palette() []color.NRGBA {
 
 }
 
-func Jitter(p PlottedPoint) float64 {
+func jitter(p PlottedPoint) float64 {
 	magnitude := math.Sqrt(p.real*p.real + p.imag*p.imag)
 	return float64(p.Iterations+1) - (math.Log(math.Log(magnitude)))/math.Log(2.0)
 }
