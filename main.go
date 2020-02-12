@@ -191,8 +191,8 @@ func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 		wg.Add(1)
 		go func() {
 			for p := range points_channel {
-				var escaped, iteration = calc(p.real, p.imag, config)
-				plotted_channel <- PlottedPoint{p.X, p.Y, p.real, p.imag, iteration, escaped}
+				var escaped, iteration, finalReal, finalImag = calc(p.real, p.imag, config)
+				plotted_channel <- PlottedPoint{p.X, p.Y, finalReal, finalImag, iteration, escaped}
 			}
 			wg.Done()
 		}()
@@ -212,4 +212,5 @@ func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 	wg.Wait()
 }
 
-type EscapeCalculator func(real float64, imag float64, config Config) (bool,int, float64, float64)
+
+type EscapeCalculator func(real float64, imag float64, config Config) (escaped bool, iterations int, finalReal float64, finalImaginary float64)

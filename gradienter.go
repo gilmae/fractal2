@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/gilmae/interpolation"
 	"encoding/hex"
 	"encoding/json"
-	"strconv"
 	"image/color"
 	"math"
+	"strconv"
+
+	"github.com/gilmae/interpolation"
 )
 
 const ( // Colour Modes
-	TrueColouring = "true"
+	TrueColouring   = "true"
 	SmoothColouring = "smooth"
-	NoColouring = "none"
+	NoColouring     = "none"
 	BandedColouring = "banded"
 )
 
@@ -48,47 +49,52 @@ func initialise_gradient(gradient_str string) {
 	blueInterpolant = interpolation.CreateMonotonicCubic(xSequence, bluepoints)
 }
 
-func get_colour(esc int, maxIterations int, colour_mode string) color.NRGBA {
-	var escapeAsFloat = float64(esc)
-
+func get_colour(point PlottedPoint, maxIterations int, colour_mode string) color.NRGBA {
 	if colour_mode == "true" {
 
-		var point = escapeAsFloat / float64(maxIterations)
-		var redpoint = redInterpolant(point)
-		var greenpoint = greenInterpolant(point)
-		var bluepoint = blueInterpolant(point)
+		var gradient_position = float64(point.Iterations) / float64(maxIterations)
+		var redpoint = redInterpolant(gradient_position)
+		var greenpoint = greenInterpolant(gradient_position)
+		var bluepoint = blueInterpolant(gradient_position)
 
 		return color.NRGBA{uint8(redpoint), uint8(greenpoint), uint8(bluepoint), 255}
-	 } else if colour_mode == "smooth" {
+	} else if colour_mode == "smooth" {
+
 		palette := Fill_Palette()
-	 	index1 := int(math.Abs(escapeAsFloat))
-	 	t2 := escapeAsFloat - float64(index1)
-	 	t1 := 1 - t2
 
-	 	index1 = index1 % len(palette)
-	 	index2 := (index1 + 1) % len(palette)
+		jitteredEscape := Jitter(point)
+		index1 := int(math.Abs(jitteredEscape))
+		t2 := jitteredEscape - float64(index1)
+		t1 := 1 - t2
 
-	 	clr1 := palette[index1]
-	 	clr2 := palette[index2]
+		index1 = index1 % len(palette)
+		index2 := (index1 + 1) % len(palette)
 
-	 	r := float64(clr1.R)*t1 + float64(clr2.R)*t2
-	 	g := float64(clr1.G)*t1 + float64(clr2.G)*t2
-	 	b := float64(clr1.B)*t1 + float64(clr2.B)*t2
+		clr1 := palette[index1]
+		clr2 := palette[index2]
 
-	 	return color.NRGBA{uint8(r), uint8(g), uint8(b), 255}
-	 } else if colour_mode == "banded" {
+		r := float64(clr1.R)*t1 + float64(clr2.R)*t2
+		g := float64(clr1.G)*t1 + float64(clr2.G)*t2
+		b := float64(clr1.B)*t1 + float64(clr2.B)*t2
+
+		return color.NRGBA{uint8(r), uint8(g), uint8(b), 255}
+
+	} else if colour_mode == "banded" {
+
 		palette := Fill_Palette()
-	  	return palette[int(esc)%len(palette)]
-	 } else {
+		return palette[point.Iterations%len(palette)]
+
+	} else {
+
 		return color.NRGBA{255, 255, 255, 255}
-	 }
+	}
 }
 
 func Fill_Palette() []color.NRGBA {
 	var palette = make([]color.NRGBA, PaletteLength)
 	for i := 0; i < PaletteLength; i++ {
 		var point = float64(i) / float64(PaletteLength)
-		
+
 		var redpoint = redInterpolant(point)
 		var greenpoint = greenInterpolant(point)
 		var bluepoint = blueInterpolant(point)
@@ -100,3 +106,7 @@ func Fill_Palette() []color.NRGBA {
 
 }
 
+func Jitter(p PlottedPoint) float64 {
+	magnitude := math.Sqrt(p.real*p.real + p.imag*p.imag)
+	return float64(p.Iterations+1) - (math.Log(math.Log(magnitude)))/math.Log(2.0)
+}

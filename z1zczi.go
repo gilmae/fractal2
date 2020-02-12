@@ -40,12 +40,12 @@ func (m *Z1ZcZiMandelbrot) Image(c Config) {
 	go func (points <- chan PlottedPoint) {
 		for p := range points {
 			 if p.Escaped {
-				mbi.Set(p.X, p.Y, get_colour(p.Iterations, c.maxIterations, c.colourMode))
+				mbi.Set(p.X, p.Y, get_colour(p, c.maxIterations, c.colourMode))
 			 }
 		}
 	}(plotted_channel)
 
-	var Check_If_Point_Escapes EscapeCalculator =  func(r float64, imaginary float64, config Config) (bool, int) {
+	var Check_If_Point_Escapes EscapeCalculator =  func(r float64, imaginary float64, config Config) (bool, int, float64, float64) {
 		var z = complex(0.0, 0.0)
 		var c = complex(r, imaginary)
 		var count int
@@ -54,7 +54,7 @@ func (m *Z1ZcZiMandelbrot) Image(c Config) {
 			z = (z+1.0) * (z + c) * (z + complex(0.0,1.0))
 		}
 
-		return  count < config.maxIterations, count
+		return  count < config.maxIterations, count, real(z), imag(z)
 }
 
 	m.Iterate_Over_Points(c, plotted_channel, Check_If_Point_Escapes)
