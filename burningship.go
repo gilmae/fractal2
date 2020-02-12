@@ -42,7 +42,7 @@ func (m *BurningShip) Image(c Config) {
 	go func (points <- chan PlottedPoint) {
 		for p := range points {
 			 if p.Escaped {
-				mbi.Set(p.X, p.Y, get_colour(p.Iterations, c.maxIterations))
+				mbi.Set(p.X, p.Y, get_colour(p.Iterations, c.maxIterations, c.colourMode))
 			 }
 		}
 	}(plotted_channel)

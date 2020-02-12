@@ -9,14 +9,20 @@ import (
 	"fmt"
 	"os"
 	"sync"
+	"strings"
 )
 
 const (
 	defaultGradient = `[["0.0", "000764"],["0.16", "026bcb"],["0.42", "edffff"],["0.6425", "ffaa00"],["0.8675", "000200"],["1.0","000764"]]`
+)
+
+// Fractals supported
+const (
 	MutantMandelbrotAlgoValue = "mutant_mandelbrot"
 	MandelbrotAlgoValue = "mandelbrot"
 	BurningShipAlgoValue = "ship"
 	JuliaAlgoValue = "julia"
+	Z1ZcZIAlgoValue = "z1zczi"
 )
 
 type Config struct {
@@ -81,6 +87,9 @@ func main() {
 	} else if c.algorithm == JuliaAlgoValue {
 		j := NewJulia()
 		j.Process(c)
+	} else if c.algorithm == Z1ZcZIAlgoValue {
+		o := NewZ1ZcZiMandelbrot()
+		o.Process(c)
 	}
 
 }
@@ -89,13 +98,17 @@ func main() {
 
 func Get_Config() Config {
 	var c Config
-	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + MandelbrotAlgoValue + ", " + MutantMandelbrotAlgoValue + ", " + JuliaAlgoValue)
+
+	var supported_algorithms = []string {MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
+	var supported_colourings = []string {TrueColouring, BandedColouring, SmoothColouring, NoColouring}
+
+	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: " + strings.Join(supported_algorithms,", "))
 	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")
 	flag.Float64Var(&c.midY, "i", -99.0, "Imaginary component of the midpoint.")
 	flag.Float64Var(&c.zoom, "z", 1, "Zoom level.")
 	flag.StringVar(&c.output, "o", ".", "Output path.")
 	flag.StringVar(&c.filename, "f", "", "Output file name.")
-	flag.StringVar(&c.colourMode, "c", "none", "Colour mode: true, smooth, banded, none.")
+	flag.StringVar(&c.colourMode, "c", "none", "Colour mode: " + strings.Join(supported_colourings,", "))
 	flag.Float64Var(&c.bailout, "b", 4.0, "Bailout value.")
 	flag.IntVar(&c.width, "w", 1600, "Width of render.")
 	flag.IntVar(&c.height, "h", 1600, "Height of render.")
@@ -199,4 +212,4 @@ func (p *Plane) Iterate_Over_Points(config Config, plotted_channel chan PlottedP
 	wg.Wait()
 }
 
-type EscapeCalculator func(real float64, imag float64, config Config) (bool,int)
+type EscapeCalculator func(real float64, imag float64, config Config) (bool,int, float64, float64)
