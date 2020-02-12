@@ -1,5 +1,7 @@
 # Fractals
 
+![Go](https://github.com/gilmae/fractal2/workflows/Go/badge.svg)
+
 Fractal is a command line application for generating fractal images using a variety of algorithims. Using centre points (in the complex plane), zoom levels, and gradient inputs, a wide variety of interesting images can be generated.
 
 ## Getting Started
