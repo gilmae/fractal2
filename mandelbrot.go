@@ -86,7 +86,7 @@ func (m *mandelbrotPlane) calculateEscape(real float64, imag float64, config con
 	 *
 	 */
 
-	var bailout = config.bailout // * config.bailout
+	var bailout = config.bailout * config.bailout
 	for iteration = 1; rsquare+isquare <= bailout && iteration < config.maxIterations; iteration++ {
 		x = rsquare - isquare + real
 		y = zsquare - rsquare - isquare + imag
