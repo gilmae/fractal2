@@ -101,7 +101,7 @@ func getConfig() config {
 	var c config
 
 	var supportedAlgorithms = []string{MandelbrotAlgoValue, JuliaAlgoValue, BurningShipAlgoValue, MutantMandelbrotAlgoValue, Z1ZcZIAlgoValue}
-	var supportedColourings = []string{TrueColouring, BandedColouring, SmoothColouring, NoColouring}
+	var supportedColourings = []string{trueColouring, bandedColouring, smoothColouring, noColouring}
 
 	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: "+strings.Join(supportedAlgorithms, ", "))
 	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")

@@ -11,10 +11,10 @@ import (
 )
 
 const ( // Colour Modes
-	TrueColouring   = "true"
-	SmoothColouring = "smooth"
-	NoColouring     = "none"
-	BandedColouring = "banded"
+	trueColouring   = "true"
+	smoothColouring = "smooth"
+	noColouring     = "none"
+	bandedColouring = "banded"
 )
 
 const (
@@ -50,7 +50,7 @@ func initialiseGradient(gradient_str string) {
 }
 
 func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) color.NRGBA {
-	if colour_mode == "true" {
+	if colour_mode == trueColouring {
 
 		var gradient_position = float64(point.Iterations) / float64(maxIterations)
 		var redpoint = redInterpolant(gradient_position)
@@ -58,7 +58,7 @@ func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) c
 		var bluepoint = blueInterpolant(gradient_position)
 
 		return color.NRGBA{uint8(redpoint), uint8(greenpoint), uint8(bluepoint), 255}
-	} else if colour_mode == "smooth" {
+	} else if colour_mode == smoothColouring {
 
 		palette := fillPalette()
 
@@ -79,12 +79,12 @@ func getPixelColour(point PlottedPoint, maxIterations int, colour_mode string) c
 
 		return color.NRGBA{uint8(r), uint8(g), uint8(b), 255}
 
-	} else if colour_mode == "banded" {
+	} else if colour_mode == bandedColouring {
 
 		palette := fillPalette()
 		return palette[point.Iterations%len(palette)]
 
-	} else {
+	} else { // i.e. noColouring
 
 		return color.NRGBA{255, 255, 255, 255}
 	}
