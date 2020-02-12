@@ -152,7 +152,7 @@ func saveimage(mbi *image.NRGBA, filepath string, filename string) {
 		fmt.Println(err)
 	}
 
-	if err = jpeg.Encode(file, mbi, &jpeg.Options{}); err != nil {
+	if err = jpeg.Encode(file, mbi, &jpeg.Options{Quality: jpeg.DefaultQuality}); err != nil {
 		fmt.Println(err)
 	}
 
