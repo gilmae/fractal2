@@ -16,6 +16,12 @@ const (
 	defaultGradient = `[["0.0", "000764"],["0.16", "026bcb"],["0.42", "edffff"],["0.6425", "ffaa00"],["0.8675", "000200"],["1.0","000764"]]`
 )
 
+const (
+	// Modes
+	imageMode       = "image"
+	coordinatesMode = "coordsAt"
+)
+
 // Fractals supported
 const (
 	mutantMandelbrotAlgoValue = "mutant_mandelbrot"
@@ -26,23 +32,23 @@ const (
 )
 
 type config struct {
-	algorithm     string
-	maxIterations int
-	bailout       float64
-	width         int
-	height        int
-	pointX        int
-	pointY        int
-	midX          float64
-	midY          float64
-	zoom          float64
-	output        string
-	filename      string
-	gradient      string
-	mode          string
-	colourMode    string
-	constR        float64
-	constI        float64
+	algorithm     string  // Which algorithm to use
+	maxIterations int     // How many iterations to allow before giving up and treating as escaped
+	bailout       float64 // Bailout point after which a point is considered to have escaped. Overriden for Julia
+	width         int     // Width in pixels of the output image
+	height        int     // Height in pixels of the output image
+	pointX        int     // X coordinate of a pixel being scaled to the complex plane
+	pointY        int     // Y coordinate of a pixel being scaled to the complex plane
+	midX          float64 // Real component of the complex number being used as the centre of the plot
+	midY          float64 // Imaginary component of the complex number being used as the centre of the plot
+	zoom          float64 // Zoom level of the plot
+	output        string  // Path to output image to
+	filename      string  // Name of the output image
+	gradient      string  // Gradient to use for colouring. Ignored when using noColour mode
+	mode          string  // Render an image or calculate coordinates
+	colourMode    string  // Colour mode of the image
+	constR        float64 // Real component of the constant in a Julia plot
+	constI        float64 // Imaginary component of the constant in a Julia Plot
 }
 
 // A Plane represents the base confines of the complex plane for a fractal based
@@ -102,6 +108,7 @@ func getConfig() config {
 
 	var supportedAlgorithms = []string{mandelbrotAlgoValue, juliaAlgoValue, burningShipAlgoValue, mutantMandelbrotAlgoValue, z1ZcZIAlgoValue}
 	var supportedColourings = []string{trueColouring, bandedColouring, smoothColouring, noColouring}
+	var supportedModes = []string{imageMode, coordinatesMode}
 
 	flag.StringVar(&c.algorithm, "a", "mandelbrot", "Fractal algorithm: "+strings.Join(supportedAlgorithms, ", "))
 	flag.Float64Var(&c.midX, "r", -99.0, "Real component of the midpoint.")
@@ -115,7 +122,7 @@ func getConfig() config {
 	flag.IntVar(&c.height, "h", 1600, "Height of render.")
 	flag.IntVar(&c.maxIterations, "m", 2000, "Maximum Iterations before giving up on finding an escape.")
 	flag.StringVar(&c.gradient, "g", defaultGradient, "Gradient to use.")
-	flag.StringVar(&c.mode, "mode", "image", "Mode: image, coordsAt")
+	flag.StringVar(&c.mode, "mode", "image", "Mode:  "+strings.Join(supportedModes, ", "))
 	flag.IntVar(&c.pointX, "x", 0, "x cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.IntVar(&c.pointY, "y", 0, "y cordinate of a pixel, used for translating to the real component. 0,0 is top left.")
 	flag.Float64Var(&c.constR, "cr", 0.0, "Real component of the const point in a Julia set.")

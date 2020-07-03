@@ -23,9 +23,9 @@ func (m z1ZcZiPlane) process(c config) {
 		c.midY = (m.iMax + m.iMin) / 2.0
 	}
 
-	if c.mode == "image" {
+	if c.mode == imageMode {
 		m.image(c)
-	} else if c.mode == "coordsAt" {
+	} else if c.mode == coordinatesMode {
 		var r, i = m.calculateCoordinatesAtPoint(c)
 		fmt.Printf("%18.17e, %18.17e\n", r, i)
 	}
