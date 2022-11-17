@@ -30,6 +30,8 @@ const (
 	juliaAlgoValue            = "julia"
 	z1ZcZIAlgoValue           = "z1zczi"
 	boujeeAlgoValue           = "boujee"
+	logTanAlgoValue           = "logtan"
+	sharkFinAlgoValue         = "sharkfin"
 )
 
 type config struct {
@@ -103,6 +105,12 @@ func main() {
 	} else if c.algorithm == boujeeAlgoValue {
 		o := newboojee()
 		o.process(c)
+	} else if c.algorithm == logTanAlgoValue {
+		o := newLogTan()
+		o.process(c)
+	} else if c.algorithm == sharkFinAlgoValue {
+		o := newSharkFin()
+		o.process(c)
 	}
 
 }
@@ -110,7 +118,7 @@ func main() {
 func getConfig() config {
 	var c config
 
-	var supportedAlgorithms = []string{mandelbrotAlgoValue, juliaAlgoValue, burningShipAlgoValue, mutantMandelbrotAlgoValue, z1ZcZIAlgoValue, boujeeAlgoValue}
+	var supportedAlgorithms = []string{mandelbrotAlgoValue, juliaAlgoValue, burningShipAlgoValue, mutantMandelbrotAlgoValue, z1ZcZIAlgoValue, boujeeAlgoValue, logTanAlgoValue, sharkFinAlgoValue}
 	var supportedColourings = []string{trueColouring, bandedColouring, smoothColouring, noColouring}
 	var supportedModes = []string{imageMode, coordinatesMode}
 
